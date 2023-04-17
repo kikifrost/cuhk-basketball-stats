@@ -6,14 +6,114 @@ import {
 import './App.css';
 
 function App() {
-  interface DataType {
+  interface statsDataType {
+    key: string;
+    player: string;
+    schedual_id: string;
+    team: string;
+    rank: string;
+    points: string;
+  }
+  const statsColumns: ColumnType<statsDataType> = [
+    {
+      title: '排名',
+      dataIndex: 'rank',
+      key: 'rank',
+    },
+    {
+      title: '选手',
+      dataIndex: 'player',
+      key: 'player',
+    },
+    {
+      title: '场次',
+      dataIndex: 'schedual_id',
+      key: 'schedual_id',
+      render: (schedual_id) => (
+        <Space size="middle">
+          {`第 ${schedual_id} 场`}
+        </Space>
+      ),
+    },
+    {
+      title: '队伍',
+      key: 'team',
+      dataIndex: 'team',
+    },
+    {
+      title: '得分',
+      dataIndex: 'points',
+      key: 'points',
+    },
+    {
+      title: '操作',
+      key: 'action',
+      render: () => (
+        <Space size="middle">
+          <a>Delete</a>
+        </Space>
+      ),
+    },
+  ]
+  const stats22f = [
+    {
+            key: '1',
+            player: '潘奇',
+            schedual_id: '9',
+            team: 'Diligentia',
+            rank: "1",
+            points: "27",
+          },
+      {
+            key: '2',
+            player: '柯云飞',
+            schedual_id: '3',
+            team: 'Shaw',
+            rank: "2",
+            points: "21",
+          },
+      {
+            key: '3',
+            player: '张泽宇',
+            schedual_id: '2',
+            team: 'Harmonia',
+            rank: "3",
+            points: "19",
+          },
+      {
+            key: '4',
+            player: '王博威',
+            schedual_id: '7',
+            team: 'Muse',
+            rank: "4",
+            points: "18",
+          },
+      {
+            key: '5',
+            player: '林垚芃',
+            schedual_id: '8',
+            team: 'Ling',
+            rank: "5",
+            points: "17",
+          },
+  ]
+  const stats23s = [
+    {
+    key: '5',
+    player: '章洪涛',
+    schedual_id: '1',
+    team: 'Harmonia',
+    rank: "5",
+    points: "20",
+    },]
+  interface matchDataType {
     key: string;
     host: string;
     time: string;
     visiting: string;
     score: string;
   }
-  const data22f: DataType[] = [
+  const data22f: matchDataType[] = [
     {
       key: '1',
       host: '祥波书院',
@@ -36,53 +136,53 @@ function App() {
       score: "60:70",
     },
   ];
-  const data23s: DataType[] = [
+  const data23s: matchDataType[] = [
     {
-            key: '4',
-            host: '学勤书院',
-            time: "06-26",
-            visiting: '逸夫书院',
-            score: "45:51",
-          },
-          {
-            key: '5',
-            host: '逸夫书院',
-            time: "06-27",
-            visiting: '祥波书院',
-            score: "34:55",
-          },
-          {
-            key: '6',
-            host: '思廷书院',
-            time: "06-27",
-            visiting: '道扬书院',
-            score: "44:54",
-          },
+      key: '4',
+      host: '学勤书院',
+      time: "06-26",
+      visiting: '逸夫书院',
+      score: "45:51",
+    },
+    {
+      key: '5',
+      host: '逸夫书院',
+      time: "06-27",
+      visiting: '祥波书院',
+      score: "34:55",
+    },
+    {
+      key: '6',
+      host: '思廷书院',
+      time: "06-27",
+      visiting: '道扬书院',
+      score: "44:54",
+    },
   ];
-  const data23f: DataType[] = [
-      {
-            key: '7',
-            host: '祥波书院',
-            time: "06-29",
-            visiting: '道扬书院',
-            score: "33:56",
-          },
-          {
-            key: '8',
-            host: '逸夫书院',
-            time: "06-29",
-            visiting: '学勤书院',
-            score: "33:28",
-          },
-          {
-            key: '9',
-            host: '学勤书院',
-            time: "06-30",
-            visiting: '祥波书院',
-            score: "67:55",
-          },
+  const data23f: matchDataType[] = [
+  {
+      key: '7',
+      host: '祥波书院',
+      time: "06-29",
+      visiting: '道扬书院',
+      score: "33:56",
+  },
+  {
+      key: '8',
+      host: '逸夫书院',
+      time: "06-29",
+      visiting: '学勤书院',
+      score: "33:28",
+  },
+  {
+      key: '9',
+      host: '学勤书院',
+      time: "06-30",
+      visiting: '祥波书院',
+      score: "67:55",
+  },
   ];
-  const columns: ColumnsType<DataType> = [
+  const matchColumns: ColumnsType<matchDataType> = [
     {
       title: '时间',
       dataIndex: 'time',
@@ -113,10 +213,11 @@ function App() {
       ),
     },
   ];
-  const [matches, setMatches] = useState([]);
-  const [season, setSeason] = useState(data23s);
+  const [matches, setMatches] = useState(data23s);
+  const [season, setSeason] = useState("1");
+  const [sider, setSider] = useState("1");
+  const [stats, setStats]=useState(stats23s);
   const [loading, setLoading] = useState(true);
-  const [collapsed, setCollapsed] = useState(false);
   const { Header, Sider, Content } = Layout;
 
   const {
@@ -125,16 +226,35 @@ function App() {
   
   const seasons = [{"season":"2022 Fall"}, {"season":"2023 Spring"},{"season":"2023 Fall"}]
 
-  const handleHeaderClick = useCallback((item) => {
+  const handleHeaderClick = (item) => {
     console.log(item.key)
-    if (item.key === '0') {
-      setSeason(data22f);
-    } else if (item.key === '1') {
-      setSeason(data23s);
-    } else if(item.key === '2'){
-      setSeason(data23f);
+    setSeason(item.key)
+  };
+  const handleSiderClick = (item) =>{
+    console.log(item.key)
+    setSider(item.key)
+  }
+  useEffect(()=>{
+    if(sider === '1'){
+      if (season === '0') {
+        setMatches(data22f);
+      } else if (season === '1') {
+        setMatches(data23s);
+      } else if(season === '2'){
+        setMatches(null);
+      }
+    }else if(sider === '2'){
+      if (season === '0') {
+        setStats(stats22f);
+      } else if (season === '1') {
+        setStats(stats23s);
+      } else if(season === '2'){
+        setStats(null);
+      }
     }
-  }, [setSeason]);
+  },[season,sider])
+
+
 
   return(
     <Layout >
@@ -167,6 +287,7 @@ function App() {
               label: '排行榜',
             },
           ]}
+          onSelect={(item)=>{handleSiderClick(item)}}
         />
       </Sider>
         <Content
@@ -177,7 +298,7 @@ function App() {
             background: '#ffffff',
           }}
         >
-          <Table columns={columns} dataSource={season} />
+          <Table columns={sider==='1'?matchColumns:statsColumns} dataSource={sider==='1'?matches:stats} />
         </Content>
       </Layout>
     </Layout>
