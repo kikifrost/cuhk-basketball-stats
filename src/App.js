@@ -1,60 +1,10 @@
-import React, { useState, useEffect,useCallback } from 'react';
-import {Layout, Menu, theme, Table, Tag, Space, Select} from 'antd';
-import {
-
-} from '@ant-design/icons';
+import React, { useState, useEffect,useCallback, useRef } from 'react';
+import {Layout, Menu, theme, Table, Tag, Space, Select, Button, Input} from 'antd';
+import {SearchOutlined} from '@ant-design/icons';
+import Highlighter from 'react-highlight-words';
 import './App.css';
 
 function App() {
-  interface statsDataType {
-    key: string;
-    player: string;
-    schedual_id: string;
-    team: string;
-    rank: string;
-    points: string;
-  }
-  const statsColumns: ColumnType<statsDataType> = [
-    {
-      title: '排名',
-      dataIndex: 'rank',
-      key: 'rank',
-    },
-    {
-      title: '选手',
-      dataIndex: 'player',
-      key: 'player',
-    },
-    {
-      title: '场次',
-      dataIndex: 'schedual_id',
-      key: 'schedual_id',
-      render: (schedual_id) => (
-        <Space size="middle">
-          {`第 ${schedual_id} 场`}
-        </Space>
-      ),
-    },
-    {
-      title: '队伍',
-      key: 'team',
-      dataIndex: 'team',
-    },
-    {
-      title: '得分',
-      dataIndex: 'points',
-      key: 'points',
-    },
-    {
-      title: '操作',
-      key: 'action',
-      render: () => (
-        <Space size="middle">
-          <a>Delete</a>
-        </Space>
-      ),
-    },
-  ]
   const stats22f = [
     {
             key: '1',
@@ -99,6 +49,38 @@ function App() {
   ]
   const stats23s = [
     {
+            key: '1',
+            player: '乔冠',
+            schedual_id: '9',
+            team: 'Muse',
+            rank: "1",
+            points: "28",
+          },
+      {
+            key: '2',
+            player: '陈澍霖',
+            schedual_id: '12',
+            team: 'Ling',
+            rank: "2",
+            points: "25",
+          },
+      {
+            key: '3',
+            player: '李恒元',
+            schedual_id: '9',
+            team: 'Diligentia',
+            rank: "3",
+            points: "21",
+          },
+      {
+            key: '4',
+            player: '赵旭航',
+            schedual_id: '5',
+            team: 'Harmonia',
+            rank: "4",
+            points: "20",
+          },
+    {
     key: '5',
     player: '章洪涛',
     schedual_id: '1',
@@ -106,14 +88,8 @@ function App() {
     rank: "5",
     points: "20",
     },]
-  interface matchDataType {
-    key: string;
-    host: string;
-    time: string;
-    visiting: string;
-    score: string;
-  }
-  const data22f: matchDataType[] = [
+
+  const data22f = [
     {
       key: '1',
       host: '祥波书院',
@@ -136,7 +112,7 @@ function App() {
       score: "60:70",
     },
   ];
-  const data23s: matchDataType[] = [
+  const data23s = [
     {
       key: '4',
       host: '学勤书院',
@@ -158,9 +134,7 @@ function App() {
       visiting: '道扬书院',
       score: "44:54",
     },
-  ];
-  const data23f: matchDataType[] = [
-  {
+    {
       key: '7',
       host: '祥波书院',
       time: "06-29",
@@ -182,48 +156,18 @@ function App() {
       score: "67:55",
   },
   ];
-  const matchColumns: ColumnsType<matchDataType> = [
-    {
-      title: '时间',
-      dataIndex: 'time',
-      key: 'time',
-    },
-    {
-      title: '主队',
-      dataIndex: 'host',
-      key: 'host',
-    },
-    {
-      title: '比分',
-      key: 'score',
-      dataIndex: 'score',
-    },
-    {
-      title: '客队',
-      dataIndex: 'visiting',
-      key: 'visiting',
-    },
-    {
-      title: '操作',
-      key: 'action',
-      render: () => (
-        <Space size="middle">
-          <a>Delete</a>
-        </Space>
-      ),
-    },
-  ];
+
+
   const [matches, setMatches] = useState(data23s);
   const [season, setSeason] = useState("1");
   const [sider, setSider] = useState("1");
   const [stats, setStats]=useState(stats23s);
+  const [admin, setAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const { Header, Sider, Content } = Layout;
-
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
-  
+  const [searchText, setSearchText] = useState('');
+  const [searchedColumn, setSearchedColumn] = useState('');
+  const searchInput = useRef(null);
   const seasons = [{"season":"2022 Fall"}, {"season":"2023 Spring"},{"season":"2023 Fall"}]
 
   const handleHeaderClick = (item) => {
@@ -254,12 +198,265 @@ function App() {
     }
   },[season,sider])
 
+  useEffect(()=>{
+    if(admin === true){
+      setstatsColumns(statsColumns1)
+      setmatchColumns(matchColumns1)
+    }else{
+      setstatsColumns(statsColumns2)
+      setmatchColumns(matchColumns2)
 
+    }
+  },[admin])
 
+  const handleSearch = (
+    selectedKeys,
+    confirm,
+    dataIndex,
+  ) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+
+  const handleReset = (clearFilters) => {
+    clearFilters();
+    setSearchText('');
+  };
+
+  const getColumnSearchProps = (dataIndex) => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <Input
+          ref={searchInput}
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Reset
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm({ closeDropdown: false });
+              setSearchText((selectedKeys)[0]);
+              setSearchedColumn(dataIndex);
+            }}
+          >
+            Filter
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close();
+            }}
+          >
+            close
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered) => (
+      <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex]
+        .toString()
+        .toLowerCase()
+        .includes((value).toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100);
+      }
+    },
+    render: (text) =>
+      searchedColumn === dataIndex ? (
+        <Highlighter
+          highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text ? text.toString() : ''}
+        />
+      ) : (
+        text
+      ),
+  });
+
+  const statsColumns1 = [
+    {
+      title: '排名',
+      dataIndex: 'rank',
+      key: 'rank',
+      ...getColumnSearchProps('rank'),
+    },
+    {
+      title: '选手',
+      dataIndex: 'player',
+      key: 'player',
+      ...getColumnSearchProps('player')
+    },
+    {
+      title: '场次',
+      dataIndex: 'schedual_id',
+      key: 'schedual_id',
+      ...getColumnSearchProps('schedual_id'),
+      render: (schedual_id) => (
+        <Space size="middle">
+          {`第 ${schedual_id} 场`}
+        </Space>
+      ),
+    },
+    {
+      title: '队伍',
+      key: 'team',
+      dataIndex: 'team',
+      ...getColumnSearchProps('team')
+    },
+    {
+      title: '得分',
+      dataIndex: 'points',
+      key: 'points',
+      ...getColumnSearchProps('points')
+
+    },
+    {
+      title: '操作',
+      key: 'action',
+      render: () => (
+        <Space size="middle">
+          <a>Delete</a>
+        </Space>
+      ),
+    },
+  ]
+  const statsColumns2 = [
+    {
+      title: '排名',
+      dataIndex: 'rank',
+      key: 'rank',
+      ...getColumnSearchProps('rank')
+
+    },
+    {
+      title: '选手',
+      dataIndex: 'player',
+      key: 'player',
+      ...getColumnSearchProps('player')
+    },
+    {
+      title: '场次',
+      dataIndex: 'schedual_id',
+      key: 'schedual_id',
+      ...getColumnSearchProps('schedual_id'),
+      render: (schedual_id) => (
+        <Space size="middle">
+          {`第 ${schedual_id} 场`}
+        </Space>
+      ),
+    },
+    {
+      title: '队伍',
+      key: 'team',
+      dataIndex: 'team',
+      ...getColumnSearchProps('team')
+
+    },
+    {
+      title: '得分',
+      dataIndex: 'points',
+      key: 'points',
+      ...getColumnSearchProps('points')
+    },
+  ]
+  const matchColumns1= [
+    {
+      title: '时间',
+      dataIndex: 'time',
+      key: 'time',
+      ...getColumnSearchProps('time')
+
+    },
+    {
+      title: '主队',
+      dataIndex: 'host',
+      key: 'host',
+      ...getColumnSearchProps('host')
+    },
+    {
+      title: '比分',
+      key: 'score',
+      dataIndex: 'score',
+      ...getColumnSearchProps('score')
+
+    },
+    {
+      title: '客队',
+      dataIndex: 'visiting',
+      key: 'visiting',
+      ...getColumnSearchProps('visiting')
+    },
+    {
+      title: '操作',
+      key: 'action',
+      render: () => (
+        <Space size="middle">
+          <a>Delete</a>
+        </Space>
+      ),
+    },
+  ];
+  const matchColumns2= [
+    {
+      title: '时间',
+      dataIndex: 'time',
+      key: 'time',
+      ...getColumnSearchProps('time')
+
+    },
+    {
+      title: '主队',
+      dataIndex: 'host',
+      key: 'host',
+      ...getColumnSearchProps('host')
+    },
+    {
+      title: '比分',
+      key: 'score',
+      dataIndex: 'score',
+      ...getColumnSearchProps('score')
+    },
+    {
+      title: '客队',
+      dataIndex: 'visiting',
+      key: 'visiting',
+      ...getColumnSearchProps('visiting')
+    },
+  ];
+  const [statsColumns, setstatsColumns] = useState(statsColumns2);
+  const [matchColumns, setmatchColumns] = useState(matchColumns2);
   return(
-    <Layout >
+    <Layout className='App'>
       <Header className='Header'>
-        <div className="Logo" />
+        <img className="Logo" src='header_institution.png' alt=""/>
           <Menu
             theme="dark"
             mode="horizontal"
@@ -270,9 +467,10 @@ function App() {
             }))}
             onSelect={(item)=>{handleHeaderClick(item)}}
           />
-        </Header>
+          <Button style={{position:"fixed",right:"40px"}} ghost={true} onClick={()=>{setAdmin(!admin)}}>{admin?"游客模式":"管理员模式"}</Button>
+      </Header>
       <Layout>
-      <Sider>
+      <Sider className='Sider'>
         <Menu
           mode="inline"
           defaultSelectedKeys={['1']}
@@ -290,16 +488,17 @@ function App() {
           onSelect={(item)=>{handleSiderClick(item)}}
         />
       </Sider>
-        <Content
-          style={{
-            margin: '24px 16px',
-            padding: 24,
-            minHeight: 280,
-            background: '#ffffff',
-          }}
-        >
-          <Table columns={sider==='1'?matchColumns:statsColumns} dataSource={sider==='1'?matches:stats} />
-        </Content>
+      <Content
+        style={{
+          margin: '24px 16px',
+          padding: 24,
+          minHeight: 280,
+          background: '#ffffff',
+        }}
+      >
+        
+        <Table columns={sider==='1'?matchColumns:statsColumns} dataSource={sider==='1'?matches:stats} />
+      </Content>
       </Layout>
     </Layout>
   );
